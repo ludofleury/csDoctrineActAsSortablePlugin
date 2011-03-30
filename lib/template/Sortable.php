@@ -185,13 +185,13 @@ class Doctrine_Template_Sortable extends Doctrine_Template
 
       $q = $object->getTable()->createQuery()
                               ->from($this->_options['class'])
-                              ->where($this->_options['name'] . ' < ' . $position)
-                              ->andWhere($this->_options['name'] . ' >= ' . $newPosition)
+                              ->where($this->_options['name'] . ' < ?', $position)
+                              ->andWhere($this->_options['name'] . ' >= ?', $newPosition)
                               ->orderBy($this->_options['name'] . ' DESC');
 
       foreach ($this->_options['uniqueBy'] as $field)
       {
-        $q->addWhere($field . ' = ' . $object[$field]);
+        $q->addWhere($field . ' = ?', $object[$field]);
       }
 
       // some drivers do not support UPDATE with ORDER BY query syntax
@@ -218,8 +218,8 @@ class Doctrine_Template_Sortable extends Doctrine_Template
 
       $q = $object->getTable()->createQuery()
                               ->from($this->_options['class'])
-                              ->where($this->_options['name'] . ' > ' . $position)
-                              ->andWhere($this->_options['name'] . ' <= ' . $newPosition)
+                              ->where($this->_options['name'] . ' > ?', $position)
+                              ->andWhere($this->_options['name'] . ' <= ?', $newPosition)
                               ->orderBy($this->_options['name'] . ' ASC');
 
       foreach($this->_options['uniqueBy'] as $field)
@@ -388,29 +388,29 @@ class Doctrine_Template_Sortable extends Doctrine_Template
   public function getFinalPosition()
   {
 
-    $object = $this->getSortableObject();
+    $object = $this->getInvoker();
 
     $q = $object->getTable()->createQuery()
                 ->from($this->_options['class'])
                 ->select($this->_options['name'])
                 ->orderBy($this->_options['name'] . ' desc');
 
-   foreach($this->_options['uniqueBy'] as $field)
-   {
+    foreach($this->_options['uniqueBy'] as $field)
+    {
      if(is_object($object[$field]))
      {
-       $q->addWhere($field . ' = ' . $object[$field]['id']);
+       $q->addWhere($field . ' = ?', $object[$field]['id']);
      }
      else
      {
-       $q->addWhere($field . ' = ' . $object[$field]);
+       $q->addWhere($field . ' = ?', $object[$field]);
      }
-   }
+    }
 
-   $last = $q->limit(1)->fetchOne();
-   $finalPosition = $last ? $last->get($this->_options['name']) : 0;
+    $last = $q->limit(1)->fetchOne();
+    $finalPosition = $last ? $last->get($this->_options['name']) : 0;
 
-   return (int)$finalPosition;
+    return (int)$finalPosition;
   }
 
   // sqlite/pgsql doesn't supports UPDATE with ORDER BY
@@ -434,7 +434,7 @@ class Doctrine_Template_Sortable extends Doctrine_Template
     }
     else
     {
-      $object = new $this->_options['class'];
+      $object = $this->getInvoker();
     }
 
     return $object;
